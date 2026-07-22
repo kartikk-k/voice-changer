@@ -2,123 +2,100 @@
 
 import { useState } from "react";
 
-import { Header } from "@/components/Header";
-import { Panel, PanelHeading } from "@/components/Panel";
-import { SegmentPreview } from "@/components/SegmentPreview";
-import { SettingsForm, type FormState } from "@/components/SettingsForm";
-import { StitchedOutput } from "@/components/StitchedOutput";
-import { TimelineMetrics } from "@/components/TimelineMetrics";
-import { Button, Field, StatusBanner, Textarea } from "@/components/ui";
-import { SAMPLE_TRANSCRIPT } from "@/lib/sampleTranscript";
-import { useStitcher } from "@/lib/useStitcher";
-
-const INITIAL_FORM: FormState = {
-  apiKey: "",
-  voiceId: "",
-  modelId: "eleven_multilingual_v2",
-  outputFormat: "wav_44100",
-  stability: 0.35,
-  similarityBoost: 0.75,
-  speed: 1,
-};
+import { PillTabBar } from "@/components/ui";
+import { SettingsPanel } from "@/components/settings/SettingsPanel";
+import { InputTab } from "@/components/tabs/InputTab";
+import { TranscriptTab } from "@/components/tabs/TranscriptTab";
+import { AudioTab } from "@/components/tabs/AudioTab";
+import { useSettings } from "@/hooks/useSettings";
+import { useStudio } from "@/hooks/useStudio";
+import { MAIN_TABS, SETTINGS_TABS_TRANSCRIPT } from "@/lib/studio/constants";
+import type { MainTab, SettingsTab } from "@/lib/studio/types";
 
 export default function Home() {
-  const [form, setForm] = useState<FormState>(INITIAL_FORM);
-  const stitcher = useStitcher(SAMPLE_TRANSCRIPT);
+  // Navigation
+  const [mainTab, setMainTab] = useState<MainTab>("input");
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>("credentials");
 
-  const updateForm = <K extends keyof FormState>(key: K, value: FormState[K]) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
+  // State management
+  const { settings, updateSetting } = useSettings();
+  const studio = useStudio(settings, setMainTab);
+
+  // The settings panel is fixed: all tabs are always shown and its title never
+  // changes, regardless of which main (right-side) tab is active.
+  const currentSettingsTabs = SETTINGS_TABS_TRANSCRIPT;
+  const activeSettingsTab = settingsTab;
+  const settingsTitle = "Settings and Control";
 
   return (
-    <div className="min-h-dvh">
-      <Header />
+    <div className="flex min-h-dvh bg-white items-start justify-center py-[24px] px-6">
+      <div className="flex w-full gap-[16px]">
+        {/* ─── Settings Panel (left) ─── */}
+        <SettingsPanel
+          settings={settings}
+          onUpdate={updateSetting}
+          settingsTabs={currentSettingsTabs}
+          activeSettingsTab={activeSettingsTab}
+          onSettingsTabChange={setSettingsTab}
+          title={settingsTitle}
+        />
 
-      <main className="mx-auto grid max-w-[1280px] gap-6 px-6 py-8 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
-        {/* Settings sidebar */}
-        <Panel className="lg:sticky lg:top-20">
-          <PanelHeading title="Settings" subtitle="Voice and generation options" />
-          <div className="p-5">
-            <SettingsForm
-              form={form}
-              onFormChange={updateForm}
-              cleanup={stitcher.cleanup}
-              onCleanupChange={stitcher.setCleanup}
-            />
-          </div>
-        </Panel>
+        {/* ─── Right Area ─── */}
+        <div className="flex items-center justify-center flex-1 h-fit">
+          <div className="flex flex-col gap-[8px] max-w-3xl w-full">
+            {/* Main tab bar */}
+            <div className="self-start w-full max-w-xl mx-auto">
+              <PillTabBar
+                tabs={MAIN_TABS}
+                active={mainTab}
+                onChange={setMainTab}
+                size="sm"
+              />
+            </div>
 
-        {/* Main content */}
-        <div className="grid gap-6">
-          <Panel>
-            <PanelHeading
-              title="Transcript"
-              subtitle="One request per timing block; gaps become inserted silence."
-            />
-            <div className="grid gap-4 p-5">
-              <Field label="Subtitle-like input" htmlFor="subtitleInput">
-                <Textarea
-                  id="subtitleInput"
-                  value={stitcher.transcript}
-                  onChange={(e) => stitcher.setTranscript(e.target.value)}
+            {/* Right content area */}
+            <div className="flex flex-col gap-[8px]">
+              {mainTab === "input" && (
+                <InputTab
+                  rawInput={studio.rawInput}
+                  onRawInputChange={studio.setRawInput}
+                  onFileUpload={studio.uploadFile}
+                  onGenerate={studio.generateTranscript}
+                  status={studio.generateStatus}
                 />
-              </Field>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  variant="primary"
-                  onClick={() => stitcher.generate(form)}
-                  disabled={stitcher.isGenerating}
-                >
-                  {stitcher.isGenerating
-                    ? "Generating…"
-                    : "Generate & stitch"}
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={stitcher.downloadWav}
-                  disabled={!stitcher.hasResult}
-                >
-                  Download WAV
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={stitcher.downloadReport}
-                  disabled={!stitcher.hasResult}
-                >
-                  Download JSON
-                </Button>
-              </div>
-
-              <StatusBanner status={stitcher.status} />
+              )}
+              {mainTab === "transcript" && (
+                <TranscriptTab
+                  segments={studio.segments}
+                  getSegmentText={studio.getSegmentText}
+                  editedTexts={studio.editedTexts}
+                  onEditText={studio.editSegmentText}
+                  summary={studio.summary}
+                  onAiProcess={studio.processAi}
+                  isProcessingAi={studio.isProcessingAi}
+                  aiStatus={studio.aiStatus}
+                  onGenerateAudio={studio.generateAudio}
+                  isGenerating={studio.isGenerating}
+                  generateStatus={studio.generateStatus}
+                />
+              )}
+              {mainTab === "audio" && (
+                <AudioTab
+                  audioUrl={studio.audioUrl}
+                  generatedSegments={studio.generatedSegments}
+                  finalDuration={studio.finalDuration}
+                  summary={studio.summary}
+                  speed={settings.speed}
+                  onSpeedChange={(v) => updateSetting("speed", v)}
+                  onDownload={studio.downloadWav}
+                  isGenerating={studio.isGenerating}
+                  generateStatus={studio.generateStatus}
+                />
+              )}
             </div>
-          </Panel>
-
-          <Panel>
-            <TimelineMetrics
-              segmentCount={stitcher.segments.length}
-              originalDuration={stitcher.summary.originalDuration}
-              silenceDuration={stitcher.summary.totalSilence}
-              finalDuration={stitcher.finalDuration}
-            />
-          </Panel>
-
-          <Panel>
-            <PanelHeading
-              title="Timeline preview"
-              subtitle="Original segments, cleaned text, and silence gaps."
-            />
-            <div className="p-5">
-              <SegmentPreview segments={stitcher.cleanedSegments} />
-            </div>
-          </Panel>
-
-          <StitchedOutput
-            audioUrl={stitcher.audioUrl}
-            generated={stitcher.generated}
-            report={stitcher.report}
-          />
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

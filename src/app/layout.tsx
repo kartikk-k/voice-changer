@@ -14,9 +14,9 @@ const displayFont = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "ElevenLabs Segment Stitcher",
+  title: "VOIX.STUDIO",
   description:
-    "Generate one ElevenLabs request per subtitle segment, restore the original silence gaps, and stitch a timeline-matched WAV in the browser.",
+    "Voice generation studio — convert transcripts to speech with ElevenLabs, apply AI-powered grammar cleanup, and stitch timeline-matched audio.",
 };
 
 export default function RootLayout({

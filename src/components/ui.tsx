@@ -3,122 +3,251 @@ import type {
   InputHTMLAttributes,
   ReactNode,
   SelectHTMLAttributes,
+  TextareaHTMLAttributes,
 } from "react";
 
-import type { Status } from "@/lib/useStitcher";
+/* ─── PillTabBar ─── */
 
-/** A labelled form control wrapper. */
-export function Field({
-  label,
-  htmlFor,
-  hint,
-  children,
+export function PillTabBar<T extends string>({
+  tabs,
+  active,
+  onChange,
+  size = "sm",
 }: {
-  label: string;
-  htmlFor: string;
-  hint?: string;
-  children: ReactNode;
+  tabs: { key: T; label: string }[];
+  active: T;
+  onChange: (key: T) => void;
+  size?: "sm" | "lg";
 }) {
+  const h = size === "sm" ? "h-[33px]" : "h-[40px]";
+
   return (
-    <div>
-      <label
-        htmlFor={htmlFor}
-        className="mb-1.5 block text-xs font-semibold text-text"
-      >
-        {label}
-      </label>
-      {children}
-      {hint ? <p className="mt-1 text-xs text-muted">{hint}</p> : null}
+    <div className="flex overflow-clip rounded-[99px] bg-[#f7f7f7] p-[2px]">
+      {tabs.map((tab) => {
+        const isActive = active === tab.key;
+        return (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => onChange(tab.key)}
+            className={`flex flex-1 cursor-pointer items-center justify-center ${h} text-xs ${
+              isActive
+                ? "rounded-[99px] bg-white shadow-[0px_0px_4px_-1px_rgba(0,0,0,0.13)]"
+                : "opacity-60"
+            }`}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
 
-const controlClass =
-  "w-full rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm text-text " +
-  "outline-none transition-colors placeholder:text-muted/70 " +
-  "focus:border-primary focus:ring-2 focus:ring-primary/20";
+/* ─── SettingsCard ─── */
 
-export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
-  return <input {...props} className={controlClass} />;
+export function SettingsCard({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-[14px] rounded-[16px] border border-[rgba(0,0,0,0.1)] bg-white p-[12px]">
+      {children}
+    </div>
+  );
 }
 
-export function Select(
+/* ─── SettingsField ─── */
+
+export function SettingsField({
+  label,
+  htmlFor,
+  link,
+  badge,
+  description,
+  trailing,
+  children,
+}: {
+  label: string;
+  htmlFor?: string;
+  link?: { text: string; href: string };
+  badge?: string;
+  description?: string;
+  trailing?: ReactNode;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-[4px]">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-[12px]">
+          <label htmlFor={htmlFor} className="text-[14px] text-black">
+            {label}
+          </label>
+          {link && (
+            <a
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-[4px] text-[12px] opacity-60 hover:opacity-80"
+            >
+              {link.text}
+              <svg width="7" height="7" viewBox="0 0 7 7" fill="none">
+                <path d="M1.5 5.5L5.5 1.5M5.5 1.5H2M5.5 1.5V5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
+          )}
+        </div>
+        <div className="flex items-center gap-[8px]">
+          {trailing}
+          {badge && (
+            <span className="text-[12px] opacity-50">({badge})</span>
+          )}
+        </div>
+      </div>
+      {description && (
+        <p className="text-[12px] opacity-60">{description}</p>
+      )}
+      {children}
+    </div>
+  );
+}
+
+/* ─── SettingsInput ─── */
+
+export function SettingsInput(
+  props: InputHTMLAttributes<HTMLInputElement>,
+) {
+  return (
+    <input
+      {...props}
+      className="w-full rounded-[10px] bg-[#f7f7f7] px-[12px] py-[6px] text-[14px] text-[rgba(0,0,0,0.6)] outline-none"
+    />
+  );
+}
+
+/* ─── SettingsTextarea ─── */
+
+export function SettingsTextarea(
+  props: TextareaHTMLAttributes<HTMLTextAreaElement>,
+) {
+  return (
+    <textarea
+      {...props}
+      className="h-[100px] w-full resize-none rounded-[10px] bg-[#f7f7f7] px-[12px] py-[6px] text-[14px] text-[rgba(0,0,0,0.6)] outline-none"
+    />
+  );
+}
+
+/* ─── SettingsSelect ─── */
+
+export function SettingsSelect(
   props: SelectHTMLAttributes<HTMLSelectElement> & { children: ReactNode },
 ) {
   const { children, ...rest } = props;
   return (
-    <select {...rest} className={controlClass}>
-      {children}
-    </select>
+    <div className="relative">
+      <select
+        {...rest}
+        className="w-full appearance-none rounded-[10px] bg-[#f7f7f7] px-[12px] py-[6px] pr-[28px] text-[14px] text-[rgba(0,0,0,0.6)] outline-none"
+      >
+        {children}
+      </select>
+      <svg
+        className="pointer-events-none absolute right-[10px] top-1/2 -translate-y-1/2 opacity-50"
+        width="12"
+        height="12"
+        viewBox="0 0 12 12"
+        fill="none"
+      >
+        <path
+          d="M3 4.5L6 7.5L9 4.5"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
   );
 }
 
-export function Textarea(
-  props: InputHTMLAttributes<HTMLTextAreaElement> & { rows?: number },
-) {
-  return (
-    <textarea
-      spellCheck={false}
-      {...props}
-      className={`${controlClass} min-h-[240px] resize-y font-mono text-xs leading-relaxed`}
-    />
-  );
-}
+/* ─── Toggle ─── */
 
-type ButtonVariant = "primary" | "secondary" | "ghost";
-
-const buttonVariants: Record<ButtonVariant, string> = {
-  primary:
-    "bg-primary text-inverse hover:bg-primary-hover shadow-sm",
-  secondary:
-    "border border-border-strong bg-surface text-text hover:bg-surface-offset",
-  ghost: "text-text hover:bg-surface-offset",
-};
-
-export function Button({
-  variant = "secondary",
-  className = "",
-  ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }) {
+export function Toggle({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
   return (
     <button
-      {...props}
-      className={
-        "inline-flex min-h-[38px] items-center justify-center rounded-lg px-4 text-sm " +
-        "font-medium transition-colors duration-150 " +
-        "disabled:cursor-not-allowed disabled:opacity-50 " +
-        `${buttonVariants[variant]} ${className}`
-      }
-    />
-  );
-}
-
-/** Small rounded label used for durations and gaps. */
-export function Chip({ children }: { children: ReactNode }) {
-  return (
-    <span className="inline-flex items-center rounded-md border border-border bg-surface-2 px-2 py-0.5 text-xs font-medium text-muted">
-      {children}
-    </span>
-  );
-}
-
-// Monochrome banners: distinguished by weight and a left accent bar rather
-// than hue, so error/success stay legible in a black-and-white palette.
-const statusStyles: Record<Status["kind"], string> = {
-  idle: "border-border bg-surface-2 text-muted",
-  info: "border-border bg-surface-2 text-text",
-  success: "border-border-strong bg-surface-offset text-text font-medium",
-  error: "border-text bg-text text-inverse font-medium",
-};
-
-export function StatusBanner({ status }: { status: Status }) {
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className={`rounded-lg border px-3.5 py-2.5 text-sm ${statusStyles[status.kind]}`}
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-[17px] w-[40px] shrink-0 cursor-pointer items-center rounded-[99px] transition-colors duration-200 ${
+        checked ? "bg-black" : "bg-[rgba(0,0,0,0.2)]"
+      }`}
     >
-      {status.message}
+      <span
+        className={`pointer-events-none inline-block h-[15px] w-[23px] rounded-[99px] bg-white transition-transform duration-200 ${
+          checked ? "translate-x-[16px]" : "translate-x-[1px]"
+        }`}
+      />
+    </button>
+  );
+}
+
+/* ─── PillButton ─── */
+
+export function PillButton({
+  variant = "default",
+  children,
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: "default" | "blue";
+}) {
+  const textColor =
+    variant === "blue" ? "text-[#2f5cff]" : "text-black";
+  const shadow =
+    variant === "blue"
+      ? "shadow-[0px_0px_4px_-1px_#2f5cff]"
+      : "shadow-[0px_0px_4px_-1px_rgba(0,0,0,0.13)]";
+
+  return (
+    <div className="flex-1 overflow-clip rounded-[99px] bg-[#f7f7f7] p-[2px]">
+      <button
+        type="button"
+        {...props}
+        className={`flex h-[40px] w-full cursor-pointer items-center justify-center rounded-[99px] bg-white px-[14px] text-[15px] ${textColor} ${shadow} disabled:cursor-not-allowed disabled:opacity-40`}
+      >
+        {children}
+      </button>
+    </div>
+  );
+}
+
+/* ─── MetricCell ─── */
+
+export function MetricCell({
+  value,
+  label,
+}: {
+  value: string;
+  label: string;
+}) {
+  return (
+    <div className="flex flex-1 flex-col items-start gap-[4px] py-[14px]">
+      <span className="text-[16px] text-black">{value}</span>
+      <span className="text-[14px] text-[#808080]">{label}</span>
+    </div>
+  );
+}
+
+/* ─── GapIndicator ─── */
+
+export function GapIndicator({ label }: { label: string }) {
+  return (
+    <div className="flex h-[14px] pt-2 items-center justify-center text-[12px] opacity-50">
+      {label}
     </div>
   );
 }
