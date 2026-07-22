@@ -7,7 +7,7 @@ export const STORAGE_KEY = "voix-studio-settings";
 export const DEFAULT_SETTINGS: AppSettings = {
   elevenLabsApiKey: "",
   vercelGatewayKey: "",
-  aiModel: "claude-sonnet-4-5-20250514",
+  aiModel: "xai/grok-4.1-fast-non-reasoning",
   voiceId: "",
   stability: 0.35,
   similarityBoost: 0.75,
@@ -45,6 +45,7 @@ export const OUTPUT_FORMATS: OutputFormat[] = [
 ];
 
 export const AI_MODELS = [
+  { value: "xai/grok-4.1-fast-non-reasoning", label: "Grok 4.1 Fast" },
   { value: "claude-sonnet-4-5-20250514", label: "Sonnet 4.5" },
   { value: "claude-haiku-4-5-20251001", label: "Haiku 4.5" },
   { value: "claude-opus-4-6-20250710", label: "Opus 4.6" },
