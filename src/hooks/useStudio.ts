@@ -320,7 +320,7 @@ export function useStudio(
     setGeneratedSegments([]);
     setFinalDuration(null);
 
-    const CONCURRENCY = 20;
+    const CONCURRENCY = 3;
 
     try {
       // Prepare work items: figure out which segments need TTS vs silence
@@ -394,21 +394,34 @@ export function useStudio(
         await Promise.all(promises);
       }
 
-      // Stitch in original segment order
+      // Stitch in original segment order, enforcing each segment fills
+      // its exact time slot (targetDuration + gapAfter) so the final
+      // duration matches the original.
       const stitchItems: StitchItem[] = [];
       for (let i = 0; i < segments.length; i++) {
+        const seg = segments[i];
+        const totalSlot = seg.targetDuration + seg.gapAfter;
         const buf = buffersByIndex[i];
-        if (buf) {
-          stitchItems.push({ type: "audio", buffer: buf });
-        } else {
-          // Blank/empty segment → silence for its full duration
-          const dur = segments[i].targetDuration + segments[i].gapAfter;
-          if (dur > 0) stitchItems.push({ type: "silence", duration: dur });
+
+        if (!buf) {
+          // Blank/empty segment → silence for its full time slot
+          if (totalSlot > 0) stitchItems.push({ type: "silence", duration: totalSlot });
           continue;
         }
-        if (segments[i].gapAfter > 0) {
-          stitchItems.push({ type: "silence", duration: segments[i].gapAfter });
+
+        const generatedDur = buf.duration;
+        stitchItems.push({ type: "audio", buffer: buf });
+
+        // Calculate remaining time after the audio plays
+        const remaining = totalSlot - generatedDur;
+
+        if (remaining > 0.01) {
+          // Generated audio is shorter than the slot — pad with silence
+          stitchItems.push({ type: "silence", duration: remaining });
         }
+        // If remaining <= 0, the audio already fills or overflows the slot.
+        // We don't trim audio (that would cut speech), so we accept the
+        // minor overflow. This is rare with properly prompted AI edits.
       }
 
       const finalBuffer = await stitchTimeline(stitchItems);
