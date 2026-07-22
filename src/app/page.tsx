@@ -27,24 +27,40 @@ export default function Home() {
   const activeSettingsTab = settingsTab;
   const settingsTitle = "Settings and Control";
 
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   return (
-    <div className="flex min-h-dvh bg-white items-start justify-center py-[24px] px-6">
-      <div className="flex w-full gap-[16px]">
+    <div className="flex min-h-dvh bg-white items-start justify-center py-4 px-4 lg:py-6 lg:px-6">
+      <div className="flex w-full flex-col lg:flex-row gap-4 lg:gap-4">
+        {/* ─── Mobile settings toggle ─── */}
+        <button
+          type="button"
+          onClick={() => setSettingsOpen(!settingsOpen)}
+          className="flex items-center gap-2 self-start rounded-[99px] bg-[#f7f7f7] px-4 py-2 text-[14px] text-black lg:hidden"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          Settings
+        </button>
+
         {/* ─── Settings Panel (left) ─── */}
-        <SettingsPanel
-          settings={settings}
-          onUpdate={updateSetting}
-          settingsTabs={currentSettingsTabs}
-          activeSettingsTab={activeSettingsTab}
-          onSettingsTabChange={setSettingsTab}
-          title={settingsTitle}
-        />
+        <div className={`${settingsOpen ? "block" : "hidden"} lg:block`}>
+          <SettingsPanel
+            settings={settings}
+            onUpdate={updateSetting}
+            settingsTabs={currentSettingsTabs}
+            activeSettingsTab={activeSettingsTab}
+            onSettingsTabChange={setSettingsTab}
+            title={settingsTitle}
+          />
+        </div>
 
         {/* ─── Right Area ─── */}
-        <div className="flex items-center justify-center flex-1 h-fit">
-          <div className="flex flex-col gap-[8px] max-w-3xl w-full">
+        <div className="flex items-start justify-center flex-1 min-w-0">
+          <div className="flex flex-col gap-2 w-full max-w-3xl">
             {/* Main tab bar */}
-            <div className="self-start w-full max-w-xl mx-auto">
+            <div className="w-full max-w-xl mx-auto">
               <PillTabBar
                 tabs={MAIN_TABS}
                 active={mainTab}
@@ -54,7 +70,7 @@ export default function Home() {
             </div>
 
             {/* Right content area */}
-            <div className="flex flex-col gap-[8px]">
+            <div className="flex flex-col gap-2">
               {mainTab === "input" && (
                 <InputTab
                   rawInput={studio.rawInput}

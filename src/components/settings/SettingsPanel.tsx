@@ -26,7 +26,7 @@ export function SettingsPanel({
   title: string;
 }) {
   return (
-    <div className="flex w-[480px] sticky top-6 shrink-0 flex-col gap-[14px] overflow-clip rounded-[20px] border border-[rgba(0,0,0,0.1)] p-[8px] self-start" style={{ maxHeight: "923px" }}>
+    <div className="flex w-full lg:w-[480px] lg:sticky lg:top-6 shrink-0 flex-col gap-[14px] overflow-clip rounded-[20px] border border-[rgba(0,0,0,0.1)] p-[8px] self-start lg:max-h-[923px]">
       {/* Title area */}
       <div className="pl-[12px] pr-[6px] pt-[6px]">
         <h2 className="text-sm font-medium text-black">
