@@ -4,16 +4,14 @@ import { GapIndicator, PillButton } from "@/components/ui";
 import { MetricsBar } from "@/components/common/MetricsBar";
 import { SegmentCard } from "@/components/common/SegmentCard";
 import { formatDuration } from "@/lib/studio/format";
-import type { AiAction } from "@/lib/ai-gateway";
 import type { Segment } from "@/lib/subtitles";
 
 export function TranscriptTab({
   segments,
   getSegmentText,
   editedTexts,
-  onEditText,
   summary,
-  onAiProcess,
+  onFixGrammarAndCleanup,
   isProcessingAi,
   aiStatus,
   onGenerateAudio,
@@ -23,9 +21,8 @@ export function TranscriptTab({
   segments: Segment[];
   getSegmentText: (seg: Segment) => string;
   editedTexts: Record<number, string>;
-  onEditText: (idx: number, text: string) => void;
   summary: { totalSilence: number; originalDuration: number };
-  onAiProcess: (action: AiAction) => void;
+  onFixGrammarAndCleanup: () => void;
   isProcessingAi: boolean;
   aiStatus: string;
   onGenerateAudio: () => void;
@@ -53,7 +50,7 @@ export function TranscriptTab({
             value: formatDuration(summary.originalDuration),
           },
           {
-            label: "Total silence",
+            label: "Silence inserted",
             value: formatDuration(summary.totalSilence),
           },
         ]}
@@ -84,12 +81,12 @@ export function TranscriptTab({
       ))}
 
       {/* Bottom action bar */}
-      <div className="flex gap-[10px] borde r-t border-[rgba(0,0,0,0.1)] pt-[14px]">
+      <div className="flex gap-[10px] border-t border-[rgba(0,0,0,0.1)] pt-[14px]">
         <PillButton
-          onClick={() => onAiProcess("grammar")}
+          onClick={onFixGrammarAndCleanup}
           disabled={isProcessingAi}
         >
-          Fix Grammar &amp; Cleanup
+          {isProcessingAi ? "Processing..." : "Fix Grammar & Cleanup"}
         </PillButton>
         <PillButton
           variant="blue"

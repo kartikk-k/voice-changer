@@ -1,22 +1,20 @@
 /**
- * AI gateway client for grammar, cleanup, and rephrase operations.
+ * AI gateway client for grammar and cleanup operations.
  * Calls the Next.js API route which proxies to the Anthropic API.
  */
 
-export type AiAction = "grammar" | "cleanup" | "rephrase";
-
-export interface AiProcessRequest {
+export interface AiFixRequest {
   text: string;
-  action: AiAction;
   model: string;
   apiKey: string;
-  grammarInstructions?: string;
-  cleanupInstructions?: string;
-  rephraseInstructions?: string;
+  grammarEnabled: boolean;
+  grammarInstructions: string;
+  cleanupEnabled: boolean;
+  cleanupInstructions: string;
 }
 
 export async function processWithAi(
-  request: AiProcessRequest,
+  request: AiFixRequest,
 ): Promise<string> {
   const response = await fetch("/api/ai", {
     method: "POST",

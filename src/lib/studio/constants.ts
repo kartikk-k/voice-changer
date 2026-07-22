@@ -12,13 +12,12 @@ export const DEFAULT_SETTINGS: AppSettings = {
   stability: 0.35,
   similarityBoost: 0.75,
   speed: 1,
-  outputFormat: "wav_44100",
+  outputFormat: "mp3_44100_128",
   defaultSilence: 0.5,
+  grammarEnabled: true,
   grammarInstructions: "",
   cleanupEnabled: true,
   cleanupInstructions: "",
-  aggressiveRephraseEnabled: false,
-  aggressiveRephraseInstructions: "",
 };
 
 export const MAIN_TABS: { key: MainTab; label: string }[] = [

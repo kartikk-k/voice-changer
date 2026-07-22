@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 
-import { processWithAi, type AiAction } from "@/lib/ai-gateway";
+import { processWithAi } from "@/lib/ai-gateway";
 import {
   audioBufferToWavBlob,
   decodeBase64Audio,
@@ -13,26 +13,20 @@ import {
 import { generateSpeech } from "@/lib/elevenlabs";
 import { SAMPLE_TRANSCRIPT } from "@/lib/sampleTranscript";
 import {
-  cleanSegmentText,
   parseSubtitleBlocks,
   summarizeTimeline,
   type Segment,
 } from "@/lib/subtitles";
 import type { AppSettings, GeneratedSegment, MainTab } from "@/lib/studio/types";
 
-/**
- * Owns the transcript → AI → audio pipeline: parsing input into segments,
- * running AI grammar/cleanup, and generating + stitching ElevenLabs audio.
- *
- * Settings are passed in (see {@link useSettings}); `onNavigate` lets the
- * pipeline advance the active tab as steps complete.
- */
 export function useStudio(
   settings: AppSettings,
   onNavigate: (tab: MainTab) => void,
 ) {
   // Input
   const [rawInput, setRawInput] = useState(SAMPLE_TRANSCRIPT);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isTranscribing, setIsTranscribing] = useState(false);
 
   // Transcript
   const [segments, setSegments] = useState<Segment[]>([]);
@@ -53,97 +47,264 @@ export function useStudio(
 
   const summary = useMemo(() => summarizeTimeline(segments), [segments]);
 
-  /** Text for a segment: an explicit edit, else cleaned/raw per settings. */
+  /** Text for a segment: returns edited text if available, otherwise raw text. */
   const getSegmentText = useCallback(
     (seg: Segment) => {
       if (editedTexts[seg.index] !== undefined) return editedTexts[seg.index];
-      return settings.cleanupEnabled
-        ? cleanSegmentText(seg.rawText, "light")
-        : seg.rawText;
+      return seg.rawText;
     },
-    [editedTexts, settings.cleanupEnabled],
+    [editedTexts],
   );
 
   const editSegmentText = useCallback((idx: number, text: string) => {
     setEditedTexts((prev) => ({ ...prev, [idx]: text }));
   }, []);
 
-  const generateTranscript = useCallback(() => {
-    const parsed = parseSubtitleBlocks(rawInput);
-    if (!parsed.length) {
-      setGenerateStatus("No valid segments found. Paste subtitle-style blocks.");
+  const selectFile = useCallback((file: File) => {
+    setUploadedFile(file);
+    setRawInput(""); // Clear raw input when file is selected
+  }, []);
+
+  const removeFile = useCallback(() => {
+    setUploadedFile(null);
+  }, []);
+
+  /**
+   * Transcribe an audio file using ElevenLabs Speech-to-Text API.
+   * Returns the transcript as SRT-formatted text.
+   */
+  const transcribeAudioFile = useCallback(
+    async (file: File): Promise<string> => {
+      if (!settings.elevenLabsApiKey) {
+        throw new Error("Add ElevenLabs API key in Credentials settings first.");
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("model_id", "scribe_v1");
+      formData.append("timestamps_granularity", "word");
+
+      const response = await fetch(
+        "https://api.elevenlabs.io/v1/speech-to-text",
+        {
+          method: "POST",
+          headers: { "xi-api-key": settings.elevenLabsApiKey },
+          body: formData,
+        },
+      );
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        const msg =
+          (data as { detail?: { message?: string } | string }).detail
+            ? typeof (data as { detail: string | { message?: string } }).detail === "string"
+              ? (data as { detail: string }).detail
+              : ((data as { detail: { message?: string } }).detail as { message?: string })?.message
+            : `Transcription failed (${response.status})`;
+        throw new Error(msg || `Transcription failed (${response.status})`);
+      }
+
+      const data = await response.json();
+
+      // Filter to only actual spoken words (skip punctuation/spacing tokens
+      // which lack timestamps and speaker_id, causing false segment splits)
+      interface STTWord {
+        text: string;
+        type: string;
+        speaker_id?: string;
+        start?: number;
+        end?: number;
+      }
+
+      const allTokens: STTWord[] = data.words || [];
+      const spokenWords = allTokens.filter(
+        (w) => w.type === "word" && w.start !== undefined && w.end !== undefined,
+      );
+
+      if (!spokenWords.length) {
+        throw new Error("No words found in transcription result.");
+      }
+
+      // Group spoken words into segments by speaker changes or pauses (>1.5s)
+      const srtLines: string[] = [];
+
+      const formatTime = (s: number) => {
+        const h = Math.floor(s / 3600);
+        const m = Math.floor((s % 3600) / 60);
+        const sec = Math.floor(s % 60);
+        const ms = Math.round((s % 1) * 1000);
+        return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")},${String(ms).padStart(3, "0")}`;
+      };
+
+      // Build segments
+      interface WordSegment {
+        start: number;
+        end: number;
+        speaker: string;
+        words: string[];
+      }
+
+      const segments: WordSegment[] = [];
+      let current: WordSegment = {
+        start: spokenWords[0].start!,
+        end: spokenWords[0].end!,
+        speaker: spokenWords[0].speaker_id || "Speaker 0",
+        words: [spokenWords[0].text],
+      };
+
+      for (let i = 1; i < spokenWords.length; i++) {
+        const w = spokenWords[i];
+        const gap = w.start! - current.end;
+        const speakerChanged =
+          w.speaker_id !== undefined &&
+          w.speaker_id !== current.speaker;
+
+        if (gap > 1.5 || speakerChanged) {
+          segments.push(current);
+          current = {
+            start: w.start!,
+            end: w.end!,
+            speaker: w.speaker_id || current.speaker,
+            words: [w.text],
+          };
+        } else {
+          current.words.push(w.text);
+          current.end = w.end!;
+        }
+      }
+      segments.push(current);
+
+      // Also weave in punctuation from the original token stream
+      // by using the top-level `text` field which has proper punctuation
+      // For now, join words with spaces (punctuation is already attached to words in most cases)
+      for (const seg of segments) {
+        const speaker = seg.speaker ? ` [${seg.speaker}]` : "";
+        srtLines.push(
+          `${formatTime(seg.start)} --> ${formatTime(seg.end)}${speaker}`,
+        );
+        srtLines.push(seg.words.join(" "));
+        srtLines.push("");
+      }
+
+      return srtLines.join("\n");
+    },
+    [settings.elevenLabsApiKey],
+  );
+
+  const generateTranscript = useCallback(async () => {
+    if (uploadedFile) {
+      // Audio file mode: transcribe first
+      const isAudio = uploadedFile.type.startsWith("audio/");
+      if (isAudio) {
+        setIsTranscribing(true);
+        setGenerateStatus("Transcribing audio file...");
+        try {
+          const srtText = await transcribeAudioFile(uploadedFile);
+          const parsed = parseSubtitleBlocks(srtText);
+          if (!parsed.length) {
+            setGenerateStatus("Transcription produced no valid segments.");
+            return;
+          }
+          setRawInput(srtText);
+          setSegments(parsed);
+          setEditedTexts({});
+          onNavigate("transcript");
+          setGenerateStatus("");
+        } catch (err) {
+          setGenerateStatus(
+            `Error: ${err instanceof Error ? err.message : String(err)}`,
+          );
+        } finally {
+          setIsTranscribing(false);
+        }
+      } else {
+        // Text file (SRT/VTT/TXT): read as text
+        const text = await uploadedFile.text();
+        const parsed = parseSubtitleBlocks(text);
+        if (!parsed.length) {
+          setGenerateStatus("No valid segments found in file.");
+          return;
+        }
+        setRawInput(text);
+        setSegments(parsed);
+        setEditedTexts({});
+        onNavigate("transcript");
+        setGenerateStatus("");
+      }
+    } else {
+      // Raw input mode
+      const parsed = parseSubtitleBlocks(rawInput);
+      if (!parsed.length) {
+        setGenerateStatus("No valid segments found. Paste subtitle-style blocks.");
+        return;
+      }
+      setSegments(parsed);
+      setEditedTexts({});
+      onNavigate("transcript");
+      setGenerateStatus("");
+    }
+  }, [rawInput, uploadedFile, onNavigate, transcribeAudioFile]);
+
+  /**
+   * Run "Fix Grammar & Cleanup" — sends all segments to the AI agent with
+   * the user's grammar and cleanup settings. The AI returns edited text
+   * per segment. Segments that become empty will be treated as silence
+   * during audio generation.
+   */
+  const fixGrammarAndCleanup = useCallback(async () => {
+    if (!settings.vercelGatewayKey) {
+      setAiStatus("Add Vercel AI Gateway key in Credentials tab first.");
       return;
     }
-    setSegments(parsed);
-    setEditedTexts({});
-    onNavigate("transcript");
-    setGenerateStatus("");
-  }, [rawInput, onNavigate]);
+    if (!segments.length) {
+      setAiStatus("No segments to process.");
+      return;
+    }
+    if (!settings.grammarEnabled && !settings.cleanupEnabled) {
+      setAiStatus("Enable at least Grammar or Clean up in Rephrase & Grammar settings.");
+      return;
+    }
 
-  const uploadFile = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => setRawInput(reader.result as string);
-      reader.readAsText(file);
-    },
-    [],
-  );
+    setIsProcessingAi(true);
+    setAiStatus("Running grammar & cleanup...");
 
-  const processAi = useCallback(
-    async (action: AiAction) => {
-      if (!settings.vercelGatewayKey) {
-        setAiStatus("Add Vercel AI Gateway key in Credentials tab first.");
-        return;
+    try {
+      const allText = segments
+        .map((seg) => `[${seg.index}] ${getSegmentText(seg)}`)
+        .join("\n");
+
+      const result = await processWithAi({
+        text: allText,
+        model: settings.aiModel,
+        apiKey: settings.vercelGatewayKey,
+        grammarEnabled: settings.grammarEnabled,
+        grammarInstructions: settings.grammarInstructions,
+        cleanupEnabled: settings.cleanupEnabled,
+        cleanupInstructions: settings.cleanupInstructions,
+      });
+
+      // Parse the AI result back into per-segment texts
+      const lines = result.split("\n").filter((l) => l.trim());
+      const newTexts: Record<number, string> = {};
+      for (const line of lines) {
+        const match = line.match(/^\[(\d+)\]\s*(.*)/);
+        if (match) newTexts[Number(match[1])] = match[2].trim();
       }
-      if (!segments.length) {
-        setAiStatus("No segments to process.");
-        return;
+
+      if (Object.keys(newTexts).length > 0) {
+        setEditedTexts((prev) => ({ ...prev, ...newTexts }));
+        setAiStatus("Grammar & cleanup complete.");
+      } else {
+        setAiStatus("AI processing complete but could not parse results.");
       }
-
-      setIsProcessingAi(true);
-      setAiStatus(`Running ${action}...`);
-
-      try {
-        const allText = segments
-          .map((seg) => `[${seg.index}] ${getSegmentText(seg)}`)
-          .join("\n");
-
-        const result = await processWithAi({
-          text: allText,
-          action,
-          model: settings.aiModel,
-          apiKey: settings.vercelGatewayKey,
-          grammarInstructions: settings.grammarInstructions,
-          cleanupInstructions: settings.cleanupInstructions,
-          rephraseInstructions: settings.aggressiveRephraseInstructions,
-        });
-
-        const lines = result.split("\n").filter((l) => l.trim());
-        const newTexts: Record<number, string> = {};
-        for (const line of lines) {
-          const match = line.match(/^\[(\d+)\]\s*(.*)/);
-          if (match) newTexts[Number(match[1])] = match[2].trim();
-        }
-
-        if (Object.keys(newTexts).length > 0) {
-          setEditedTexts((prev) => ({ ...prev, ...newTexts }));
-        } else {
-          setAiStatus("AI processing complete. Check results.");
-        }
-
-        setAiStatus(`${action} complete.`);
-      } catch (err) {
-        setAiStatus(
-          `Error: ${err instanceof Error ? err.message : String(err)}`,
-        );
-      } finally {
-        setIsProcessingAi(false);
-      }
-    },
-    [settings, segments, getSegmentText],
-  );
+    } catch (err) {
+      setAiStatus(
+        `Error: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    } finally {
+      setIsProcessingAi(false);
+    }
+  }, [settings, segments, getSegmentText]);
 
   const generateAudio = useCallback(async () => {
     if (!settings.elevenLabsApiKey || !settings.voiceId) {
@@ -168,6 +329,8 @@ export function useStudio(
         const seg = segments[i];
         const text = getSegmentText(seg);
 
+        // If text is blank (e.g. after cleanup removed all content),
+        // insert silence for this segment's full duration + gap
         if (!text.trim()) {
           const dur = seg.targetDuration + seg.gapAfter;
           if (dur > 0) stitchItems.push({ type: "silence", duration: dur });
@@ -244,21 +407,21 @@ export function useStudio(
   }, []);
 
   return {
-    // input
     rawInput,
     setRawInput,
-    uploadFile,
+    uploadedFile,
+    selectFile,
+    removeFile,
+    isTranscribing,
     generateTranscript,
-    // transcript
     segments,
     editedTexts,
     getSegmentText,
     editSegmentText,
     summary,
-    processAi,
+    fixGrammarAndCleanup,
     isProcessingAi,
     aiStatus,
-    // audio
     generateAudio,
     isGenerating,
     generateStatus,

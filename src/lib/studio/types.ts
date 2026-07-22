@@ -17,11 +17,10 @@ export interface AppSettings {
   speed: number;
   outputFormat: OutputFormat;
   defaultSilence: number;
+  grammarEnabled: boolean;
   grammarInstructions: string;
   cleanupEnabled: boolean;
   cleanupInstructions: string;
-  aggressiveRephraseEnabled: boolean;
-  aggressiveRephraseInstructions: string;
 }
 
 /** Update a single settings field in a type-safe way. */

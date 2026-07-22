@@ -59,9 +59,12 @@ export default function Home() {
                 <InputTab
                   rawInput={studio.rawInput}
                   onRawInputChange={studio.setRawInput}
-                  onFileUpload={studio.uploadFile}
+                  uploadedFile={studio.uploadedFile}
+                  onFileSelect={studio.selectFile}
+                  onFileRemove={studio.removeFile}
                   onGenerate={studio.generateTranscript}
                   status={studio.generateStatus}
+                  isTranscribing={studio.isTranscribing}
                 />
               )}
               {mainTab === "transcript" && (
@@ -69,9 +72,8 @@ export default function Home() {
                   segments={studio.segments}
                   getSegmentText={studio.getSegmentText}
                   editedTexts={studio.editedTexts}
-                  onEditText={studio.editSegmentText}
                   summary={studio.summary}
-                  onAiProcess={studio.processAi}
+                  onFixGrammarAndCleanup={studio.fixGrammarAndCleanup}
                   isProcessingAi={studio.isProcessingAi}
                   aiStatus={studio.aiStatus}
                   onGenerateAudio={studio.generateAudio}

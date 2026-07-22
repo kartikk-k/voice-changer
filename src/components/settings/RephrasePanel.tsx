@@ -20,20 +20,26 @@ export function RephrasePanel({
       {/* Grammar card */}
       <SettingsCard>
         <SettingsField
-          label="Grammer"
+          label="Grammar"
           htmlFor="grammarInstructions"
-          badge="Optional"
           description="Rules or patterns to ignore"
-          link={{ text: "Additional instructions", href: "#" }}
+          trailing={
+            <Toggle
+              checked={settings.grammarEnabled}
+              onChange={(v) => onUpdate("grammarEnabled", v)}
+            />
+          }
         >
-          <SettingsTextarea
-            id="grammarInstructions"
-            placeholder="- Follow British English..."
-            value={settings.grammarInstructions}
-            onChange={(e) =>
-              onUpdate("grammarInstructions", e.target.value)
-            }
-          />
+          {settings.grammarEnabled && (
+            <SettingsTextarea
+              id="grammarInstructions"
+              placeholder="- Follow British English..."
+              value={settings.grammarInstructions}
+              onChange={(e) =>
+                onUpdate("grammarInstructions", e.target.value)
+              }
+            />
+          )}
         </SettingsField>
       </SettingsCard>
 
@@ -50,37 +56,13 @@ export function RephrasePanel({
             />
           }
         >
-          <SettingsTextarea
-            id="cleanupInstructions"
-            placeholder="- Remove all Uh.."
-            value={settings.cleanupInstructions}
-            onChange={(e) =>
-              onUpdate("cleanupInstructions", e.target.value)
-            }
-          />
-        </SettingsField>
-      </SettingsCard>
-
-      {/* Aggressive rephrase card */}
-      <SettingsCard>
-        <SettingsField
-          label="Aggressive rephrase"
-          htmlFor="aggressiveRephraseInstructions"
-          description="Instructions for AI model to follow when rewriting transcript text"
-          trailing={
-            <Toggle
-              checked={settings.aggressiveRephraseEnabled}
-              onChange={(v) => onUpdate("aggressiveRephraseEnabled", v)}
-            />
-          }
-        >
-          {settings.aggressiveRephraseEnabled && (
+          {settings.cleanupEnabled && (
             <SettingsTextarea
-              id="aggressiveRephraseInstructions"
-              placeholder="Rephrase for clarity..."
-              value={settings.aggressiveRephraseInstructions}
+              id="cleanupInstructions"
+              placeholder="- Remove all Uh.."
+              value={settings.cleanupInstructions}
               onChange={(e) =>
-                onUpdate("aggressiveRephraseInstructions", e.target.value)
+                onUpdate("cleanupInstructions", e.target.value)
               }
             />
           )}
