@@ -1,5 +1,7 @@
 "use client";
 
+import { useCallback, useState } from "react";
+
 import { GapIndicator, PillButton } from "@/components/ui";
 import { MetricsBar } from "@/components/common/MetricsBar";
 import { SegmentCard } from "@/components/common/SegmentCard";
@@ -30,6 +32,24 @@ export function TranscriptTab({
   isGenerating: boolean;
   generateStatus: string;
 }) {
+  const [copied, setCopied] = useState(false);
+
+  /** Build SRT-formatted text from current segments (with edits applied). */
+  const copyTranscript = useCallback(() => {
+    const srt = segments
+      .map((seg) => {
+        const speaker = seg.speaker ? ` [${seg.speaker}]` : "";
+        const text = getSegmentText(seg);
+        return `${seg.start} --> ${seg.end}${speaker}\n${text}`;
+      })
+      .join("\n\n");
+
+    navigator.clipboard.writeText(srt).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [segments, getSegmentText]);
+
   if (!segments.length) {
     return (
       <div className="flex h-[400px] items-center justify-center">
@@ -83,6 +103,9 @@ export function TranscriptTab({
 
       {/* Bottom action bar */}
       <div className="flex gap-[10px] border-t border-[rgba(0,0,0,0.1)] pt-[14px]">
+        <PillButton onClick={copyTranscript}>
+          {copied ? "Copied!" : "Copy Transcript"}
+        </PillButton>
         <PillButton
           onClick={onFixGrammarAndCleanup}
           disabled={isProcessingAi}
