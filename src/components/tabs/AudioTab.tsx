@@ -15,6 +15,7 @@ function formatTime(seconds: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+/** Audio tab with custom playback controls, speed selector, and download action. */
 export function AudioTab({
   audioUrl,
   generatedSegments,

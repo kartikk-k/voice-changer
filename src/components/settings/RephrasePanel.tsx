@@ -8,6 +8,7 @@ import {
   Toggle,
 } from "@/components/ui";
 
+/** Rephrase and grammar settings sub-panel with toggleable instruction fields. */
 export function RephrasePanel({
   settings,
   onUpdate,

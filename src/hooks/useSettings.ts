@@ -9,7 +9,9 @@ function loadSettings(): AppSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
-  } catch {}
+  } catch {
+    // localStorage may throw in private browsing — safe to ignore
+  }
   return DEFAULT_SETTINGS;
 }
 
@@ -29,7 +31,9 @@ export function useSettings() {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    } catch {}
+    } catch {
+      // localStorage may throw in private browsing — safe to ignore
+    }
   }, [settings]);
 
   const updateSetting = useCallback<UpdateSetting>((key, value) => {

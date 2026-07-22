@@ -19,6 +19,22 @@ import {
 } from "@/lib/subtitles";
 import type { AppSettings, GeneratedSegment, MainTab } from "@/lib/studio/types";
 
+interface STTWord {
+  text: string;
+  type: string;
+  speaker_id?: string;
+  start?: number;
+  end?: number;
+}
+
+interface WordSegment {
+  start: number;
+  end: number;
+  speaker: string;
+  words: string[];
+}
+
+/** Core studio hook managing input, transcription, AI editing, TTS generation, and stitching. */
 export function useStudio(
   settings: AppSettings,
   onNavigate: (tab: MainTab) => void,
@@ -55,10 +71,6 @@ export function useStudio(
     },
     [editedTexts],
   );
-
-  const editSegmentText = useCallback((idx: number, text: string) => {
-    setEditedTexts((prev) => ({ ...prev, [idx]: text }));
-  }, []);
 
   const selectFile = useCallback((file: File) => {
     setUploadedFile(file);
@@ -108,14 +120,6 @@ export function useStudio(
 
       // Filter to only actual spoken words (skip punctuation/spacing tokens
       // which lack timestamps and speaker_id, causing false segment splits)
-      interface STTWord {
-        text: string;
-        type: string;
-        speaker_id?: string;
-        start?: number;
-        end?: number;
-      }
-
       const allTokens: STTWord[] = data.words || [];
       const spokenWords = allTokens.filter(
         (w) => w.type === "word" && w.start !== undefined && w.end !== undefined,
@@ -137,13 +141,6 @@ export function useStudio(
       };
 
       // Build segments
-      interface WordSegment {
-        start: number;
-        end: number;
-        speaker: string;
-        words: string[];
-      }
-
       const segments: WordSegment[] = [];
       let current: WordSegment = {
         start: spokenWords[0].start!,
@@ -355,8 +352,6 @@ export function useStudio(
       const buffersByIndex: (AudioBuffer | null)[] = new Array(
         segments.length,
       ).fill(null);
-      let completed = 0;
-
       // Generate TTS for non-empty segments in parallel batches of CONCURRENCY
       const ttsItems = workItems
         .map((item, i) => (item ? { ...item, position: i } : null))
@@ -389,7 +384,6 @@ export function useStudio(
 
           resultsByIndex[item.position] = row;
           buffersByIndex[item.position] = buffer;
-          completed++;
 
           // Update progress
           setGeneratedSegments(
@@ -454,7 +448,6 @@ export function useStudio(
     segments,
     editedTexts,
     getSegmentText,
-    editSegmentText,
     summary,
     fixGrammarAndCleanup,
     isProcessingAi,

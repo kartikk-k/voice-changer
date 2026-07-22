@@ -12,6 +12,7 @@ import { useStudio } from "@/hooks/useStudio";
 import { MAIN_TABS, SETTINGS_TABS_TRANSCRIPT } from "@/lib/studio/constants";
 import type { MainTab, SettingsTab } from "@/lib/studio/types";
 
+/** Root page composing the settings panel, main tab bar, and active content tab. */
 export default function Home() {
   // Navigation
   const [mainTab, setMainTab] = useState<MainTab>("input");
@@ -20,12 +21,6 @@ export default function Home() {
   // State management
   const { settings, updateSetting } = useSettings();
   const studio = useStudio(settings, setMainTab);
-
-  // The settings panel is fixed: all tabs are always shown and its title never
-  // changes, regardless of which main (right-side) tab is active.
-  const currentSettingsTabs = SETTINGS_TABS_TRANSCRIPT;
-  const activeSettingsTab = settingsTab;
-  const settingsTitle = "Settings and Control";
 
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -49,10 +44,10 @@ export default function Home() {
           <SettingsPanel
             settings={settings}
             onUpdate={updateSetting}
-            settingsTabs={currentSettingsTabs}
-            activeSettingsTab={activeSettingsTab}
+            settingsTabs={SETTINGS_TABS_TRANSCRIPT}
+            activeSettingsTab={settingsTab}
             onSettingsTabChange={setSettingsTab}
-            title={settingsTitle}
+            title="Settings and Control"
           />
         </div>
 

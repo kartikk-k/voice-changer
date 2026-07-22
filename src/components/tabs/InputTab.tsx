@@ -4,6 +4,7 @@ import { useRef } from "react";
 
 import { PillButton } from "@/components/ui";
 
+/** Input tab for uploading audio files or pasting raw transcript text. */
 export function InputTab({
   rawInput,
   onRawInputChange,

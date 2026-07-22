@@ -4,6 +4,7 @@ import type { AppSettings, MainTab, SettingsTab } from "@/lib/studio/types";
 /** localStorage key used to persist {@link AppSettings}. */
 export const STORAGE_KEY = "voix-studio-settings";
 
+/** Factory defaults for all studio settings. */
 export const DEFAULT_SETTINGS: AppSettings = {
   elevenLabsApiKey: "",
   vercelGatewayKey: "",
@@ -20,23 +21,21 @@ export const DEFAULT_SETTINGS: AppSettings = {
   cleanupInstructions: "",
 };
 
+/** Tab definitions for the main content area. */
 export const MAIN_TABS: { key: MainTab; label: string }[] = [
   { key: "input", label: "Input" },
   { key: "transcript", label: "Transcript" },
   { key: "audio", label: "Audio" },
 ];
 
-export const SETTINGS_TABS_INPUT: { key: SettingsTab; label: string }[] = [
-  { key: "credentials", label: "Credentials" },
-  { key: "voice", label: "Voice" },
-];
-
+/** Settings sub-tabs shown when the Transcript or Audio main tab is active. */
 export const SETTINGS_TABS_TRANSCRIPT: { key: SettingsTab; label: string }[] = [
   { key: "credentials", label: "Credentials" },
   { key: "voice", label: "Voice" },
   { key: "rephrase", label: "Rephrase & Grammar" },
 ];
 
+/** Available ElevenLabs output format options. */
 export const OUTPUT_FORMATS: OutputFormat[] = [
   "mp3_44100_128",
   "mp3_44100_192",
@@ -44,6 +43,7 @@ export const OUTPUT_FORMATS: OutputFormat[] = [
   "wav_44100",
 ];
 
+/** Selectable AI models for grammar and cleanup via Vercel AI Gateway. */
 export const AI_MODELS = [
   { value: "xai/grok-4.1-fast-non-reasoning", label: "Grok 4.1 Fast" },
   { value: "claude-sonnet-4-5-20250514", label: "Sonnet 4.5" },

@@ -1,5 +1,6 @@
 "use client";
 
+/** Card displaying a single transcript segment with speaker, timestamps, and text. */
 export function SegmentCard({
   speaker,
   start,

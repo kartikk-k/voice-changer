@@ -2,6 +2,7 @@ import { generateText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import { NextResponse } from "next/server";
 
+/** Server-side route that proxies grammar/cleanup requests to the Vercel AI Gateway. */
 export async function POST(request: Request) {
   try {
     const body = await request.json();

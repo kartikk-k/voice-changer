@@ -8,6 +8,7 @@ import type {
 
 /* ─── PillTabBar ─── */
 
+/** Segmented pill-style tab bar matching the Figma design system. */
 export function PillTabBar<T extends string>({
   tabs,
   active,
@@ -46,6 +47,7 @@ export function PillTabBar<T extends string>({
 
 /* ─── SettingsCard ─── */
 
+/** Rounded card container used to group related settings fields. */
 export function SettingsCard({ children }: { children: ReactNode }) {
   return (
     <div className="flex flex-col gap-[14px] rounded-[16px] border border-[rgba(0,0,0,0.1)] bg-white p-[12px]">
@@ -56,6 +58,7 @@ export function SettingsCard({ children }: { children: ReactNode }) {
 
 /* ─── SettingsField ─── */
 
+/** Labeled field row with optional link, badge, description, and trailing content. */
 export function SettingsField({
   label,
   htmlFor,
@@ -111,6 +114,7 @@ export function SettingsField({
 
 /* ─── SettingsInput ─── */
 
+/** Styled text input for settings forms. */
 export function SettingsInput(
   props: InputHTMLAttributes<HTMLInputElement>,
 ) {
@@ -124,6 +128,7 @@ export function SettingsInput(
 
 /* ─── SettingsTextarea ─── */
 
+/** Multi-line textarea for settings forms. */
 export function SettingsTextarea(
   props: TextareaHTMLAttributes<HTMLTextAreaElement>,
 ) {
@@ -137,6 +142,7 @@ export function SettingsTextarea(
 
 /* ─── SettingsSelect ─── */
 
+/** Styled dropdown select with a custom chevron icon. */
 export function SettingsSelect(
   props: SelectHTMLAttributes<HTMLSelectElement> & { children: ReactNode },
 ) {
@@ -170,6 +176,7 @@ export function SettingsSelect(
 
 /* ─── Toggle ─── */
 
+/** Boolean toggle switch with slide animation. */
 export function Toggle({
   checked,
   onChange,
@@ -198,6 +205,7 @@ export function Toggle({
 
 /* ─── PillButton ─── */
 
+/** Pill-shaped action button with optional blue variant. */
 export function PillButton({
   variant = "default",
   children,
@@ -227,6 +235,7 @@ export function PillButton({
 
 /* ─── MetricCell ─── */
 
+/** Single value/label pair displayed inside a metrics bar. */
 export function MetricCell({
   value,
   label,
@@ -244,6 +253,7 @@ export function MetricCell({
 
 /* ─── GapIndicator ─── */
 
+/** Small label showing the silence gap between two transcript segments. */
 export function GapIndicator({ label }: { label: string }) {
   return (
     <div className="flex h-[14px] pt-2 items-center justify-center text-[12px] opacity-50">

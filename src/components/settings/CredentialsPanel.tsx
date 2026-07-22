@@ -9,6 +9,7 @@ import {
   SettingsSelect,
 } from "@/components/ui";
 
+/** Credentials settings sub-panel for API keys and AI model selection. */
 export function CredentialsPanel({
   settings,
   onUpdate,

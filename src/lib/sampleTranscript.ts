@@ -1,3 +1,4 @@
+/** Example SRT-style transcript pre-filled in the input tab for demo purposes. */
 export const SAMPLE_TRANSCRIPT = `00:00:00,500 --> 00:00:04,200 [Speaker 0]
 Hey everyone, today we're introducing Pulse, a real-time analytics dashboard for your app.
 

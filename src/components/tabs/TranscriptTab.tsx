@@ -6,6 +6,7 @@ import { SegmentCard } from "@/components/common/SegmentCard";
 import { formatDuration } from "@/lib/studio/format";
 import type { Segment } from "@/lib/subtitles";
 
+/** Transcript tab showing parsed segments with grammar/cleanup and audio generation actions. */
 export function TranscriptTab({
   segments,
   getSegmentText,

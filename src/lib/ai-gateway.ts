@@ -3,6 +3,7 @@
  * Calls the Next.js API route which proxies to the Anthropic API.
  */
 
+/** Payload sent to the AI gateway for grammar and cleanup processing. */
 export interface AiFixRequest {
   text: string;
   model: string;
@@ -13,6 +14,7 @@ export interface AiFixRequest {
   cleanupInstructions: string;
 }
 
+/** Sends transcript segments to the server-side AI route and returns the edited text. */
 export async function processWithAi(
   request: AiFixRequest,
 ): Promise<string> {

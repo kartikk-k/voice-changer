@@ -10,8 +10,6 @@
  * reused on either the server or the client.
  */
 
-export type CleanupMode = "off" | "light";
-
 /** A single parsed transcript block. */
 export interface Segment {
   /** Zero-based position within the transcript. */
@@ -47,42 +45,11 @@ const TIMING_LINE =
   /^(\d{2}:\d{2}:\d{2},\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2},\d{3})(?:\s*\[(.*?)\])?$/;
 
 /** Convert an `HH:MM:SS,mmm` timestamp to seconds, or `null` if malformed. */
-export function timeToSeconds(value: string): number | null {
+function timeToSeconds(value: string): number | null {
   const match = value.trim().match(TIMESTAMP);
   if (!match) return null;
   const [, h, m, s, ms] = match;
   return Number(h) * 3600 + Number(m) * 60 + Number(s) + Number(ms) / 1000;
-}
-
-/** Convert seconds back to an `HH:MM:SS,mmm` timestamp. */
-export function secondsToSrt(seconds: number): string {
-  const totalMs = Math.max(0, Math.round(seconds * 1000));
-  const hh = String(Math.floor(totalMs / 3600000)).padStart(2, "0");
-  const mm = String(Math.floor((totalMs % 3600000) / 60000)).padStart(2, "0");
-  const ss = String(Math.floor((totalMs % 60000) / 1000)).padStart(2, "0");
-  const ms = String(totalMs % 1000).padStart(3, "0");
-  return `${hh}:${mm}:${ss},${ms}`;
-}
-
-/**
- * Normalise a segment's text and, in `light` mode, strip common fillers and
- * bracketed cues so the generated speech sounds cleaner.
- */
-export function cleanSegmentText(text: string, mode: CleanupMode): string {
-  const collapsed = text.trim().replace(/\s+/g, " ");
-  if (mode !== "light") return collapsed;
-
-  return collapsed
-    .replace(/\[(.*?)\]/g, "") // bracketed cues, e.g. [lip smack]
-    .replace(/\buh\b,?/gi, "")
-    .replace(/\bum\b,?/gi, "")
-    .replace(/\bth-that\b/gi, "that")
-    .replace(/\bpress, press\b/gi, "press")
-    .replace(/\bto, to\b/gi, "to")
-    .replace(/\s+,/g, ",")
-    .replace(/\s+\./g, ".")
-    .replace(/\s{2,}/g, " ")
-    .trim();
 }
 
 /**

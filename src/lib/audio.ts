@@ -13,7 +13,7 @@ export type StitchItem =
 let sharedContext: AudioContext | null = null;
 
 /** Lazily create (and resume) a single shared AudioContext. */
-export async function getAudioContext(): Promise<AudioContext> {
+async function getAudioContext(): Promise<AudioContext> {
   if (!sharedContext) {
     const Ctx =
       window.AudioContext ||

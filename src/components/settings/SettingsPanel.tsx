@@ -10,6 +10,7 @@ import { CredentialsPanel } from "./CredentialsPanel";
 import { VoicePanel } from "./VoicePanel";
 import { RephrasePanel } from "./RephrasePanel";
 
+/** Left-side settings panel with sub-tab navigation for credentials, voice, and rephrase. */
 export function SettingsPanel({
   settings,
   onUpdate,

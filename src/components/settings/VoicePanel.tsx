@@ -10,6 +10,7 @@ import {
   SettingsSelect,
 } from "@/components/ui";
 
+/** Voice settings sub-panel for voice ID, stability, similarity, speed, and output format. */
 export function VoicePanel({
   settings,
   onUpdate,

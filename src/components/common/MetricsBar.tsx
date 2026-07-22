@@ -2,6 +2,7 @@
 
 import { MetricCell } from "@/components/ui";
 
+/** Horizontal bar displaying a row of metric value/label pairs. */
 export function MetricsBar({
   metrics,
 }: {
