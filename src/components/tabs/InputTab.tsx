@@ -76,8 +76,8 @@ export function InputTab({
             onDragOver={handleDragOver}
             className="flex h-[130px] w-full flex-col items-center justify-center rounded-[16px] bg-[#f7f7f7] px-[24px] transition-colors hover:bg-[#efefef]"
           >
-            <p className="text-[16px] text-black">Upload audio file</p>
-            <p className="text-[14px] text-[#808080]">
+            <p className="text-sm text-black">Upload audio file</p>
+            <p className="text-xs text-[#808080]">
               Click to upload or Drag and drop here
             </p>
           </button>

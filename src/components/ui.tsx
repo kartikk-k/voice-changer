@@ -217,7 +217,7 @@ export function PillButton({
       <button
         type="button"
         {...props}
-        className={`flex h-[40px] w-full cursor-pointer items-center justify-center rounded-[99px] bg-white px-[14px] text-[15px] ${textColor} ${shadow} disabled:cursor-not-allowed disabled:opacity-40`}
+        className={`flex h-[40px] w-full cursor-pointer items-center justify-center rounded-[99px] bg-white px-[14px] text-[13px] ${textColor} ${shadow} disabled:cursor-not-allowed disabled:opacity-40`}
       >
         {children}
       </button>
