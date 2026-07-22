@@ -270,7 +270,10 @@ export function useStudio(
 
     try {
       const allText = segments
-        .map((seg) => `[${seg.index}] ${getSegmentText(seg)}`)
+        .map(
+          (seg) =>
+            `[${seg.index} | duration: ${seg.targetDuration.toFixed(1)}s | gap_after: ${seg.gapAfter.toFixed(1)}s] ${getSegmentText(seg)}`,
+        )
         .join("\n");
 
       const result = await processWithAi({
