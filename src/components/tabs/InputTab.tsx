@@ -47,10 +47,10 @@ export function InputTab({
     <div className="flex flex-col gap-[8px]">
       {uploadedFile ? (
         /* ─── Uploaded file state ─── */
-        <div className="flex h-[130px] w-full items-center justify-center rounded-[16px] bg-[#f7f7f7] px-[24px] relative">
+        <div className="flex h-[130px] w-full items-center justify-center rounded-[16px] bg-surface-alt px-[24px] relative">
           <div className="flex flex-col items-center gap-[4px]">
-            <p className="text-[16px] text-black">{uploadedFile.name}</p>
-            <p className="text-[14px] text-[#808080]">
+            <p className="text-[16px] text-fg">{uploadedFile.name}</p>
+            <p className="text-[14px] text-fg-faint">
               {(uploadedFile.size / 1024).toFixed(1)} KB
             </p>
           </div>
@@ -58,7 +58,7 @@ export function InputTab({
           <button
             type="button"
             onClick={onFileRemove}
-            className="absolute right-[16px] top-[16px] flex size-[24px] items-center justify-center rounded-full bg-[rgba(0,0,0,0.08)] text-[rgba(0,0,0,0.5)] transition-colors hover:bg-[rgba(0,0,0,0.15)]"
+            className="absolute right-[16px] top-[16px] flex size-[24px] items-center justify-center rounded-full bg-border text-fg-muted transition-colors hover:bg-surface-hover"
             aria-label="Remove file"
           >
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
@@ -75,18 +75,18 @@ export function InputTab({
             onClick={() => fileInputRef.current?.click()}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
-            className="flex h-[130px] w-full flex-col items-center justify-center rounded-[16px] bg-[#f7f7f7] px-[24px] transition-colors hover:bg-[#efefef]"
+            className="flex h-[130px] w-full flex-col items-center justify-center rounded-[16px] bg-surface-alt px-[24px] transition-colors hover:bg-surface-hover"
           >
-            <p className="text-sm text-black">Upload audio file</p>
-            <p className="text-xs text-[#808080]">
+            <p className="text-sm text-fg">Upload audio file</p>
+            <p className="text-xs text-fg-faint">
               Click to upload or Drag and drop here
             </p>
           </button>
 
           {/* Paste raw input */}
-          <div className="rounded-[14px] border border-[rgba(0,0,0,0.1)]">
+          <div className="rounded-[14px] border border-border">
             <div className="px-[12px] py-[6px]">
-              <span className="text-[12px] text-black">Paste raw input here</span>
+              <span className="text-[12px] text-fg">Paste raw input here</span>
             </div>
             <div className="p-[12px] pt-0">
               <div className="rounded-[8px] p-[8px]">
@@ -95,7 +95,7 @@ export function InputTab({
                   placeholder="Paste raw input here..."
                   value={rawInput}
                   onChange={(e) => onRawInputChange(e.target.value)}
-                  className="h-[268px] w-full resize-none bg-transparent text-[15px] text-black outline-none placeholder:opacity-60"
+                  className="h-[268px] w-full resize-none bg-transparent text-[15px] text-fg outline-none placeholder:opacity-60"
                 />
               </div>
             </div>
@@ -113,7 +113,7 @@ export function InputTab({
 
       {/* Status */}
       {status && (
-        <p className="text-xs text-[#808080]">{status}</p>
+        <p className="text-xs text-fg-faint">{status}</p>
       )}
 
       {/* Generate button */}

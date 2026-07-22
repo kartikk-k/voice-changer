@@ -102,7 +102,7 @@ export function TranscriptTab({
       ))}
 
       {/* Bottom action bar */}
-      <div className="flex gap-[10px] border-t border-[rgba(0,0,0,0.1)] pt-[14px]">
+      <div className="flex gap-[10px] border-t border-border pt-[14px]">
         <PillButton onClick={copyTranscript}>
           {copied ? "Copied!" : "Copy Transcript"}
         </PillButton>

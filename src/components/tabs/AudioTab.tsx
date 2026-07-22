@@ -131,13 +131,13 @@ export function AudioTab({
 
       {/* Custom audio player */}
       {audioUrl && (
-        <div className="rounded-[16px] bg-[#f7f7f7] p-5">
+        <div className="rounded-[16px] bg-surface-alt p-5">
           <div className="flex items-center gap-4">
             {/* Play/Pause */}
             <button
               type="button"
               onClick={togglePlay}
-              className="flex size-[44px] shrink-0 items-center justify-center rounded-full bg-black text-white transition-colors hover:bg-black/80"
+              className="flex size-[44px] shrink-0 items-center justify-center rounded-full bg-fg text-surface transition-colors hover:opacity-80"
             >
               {isPlaying ? (
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -154,10 +154,10 @@ export function AudioTab({
             {/* Time + Progress */}
             <div className="flex flex-1 flex-col gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-[13px] tabular-nums text-black">
+                <span className="text-[13px] tabular-nums text-fg">
                   {formatTime(currentTime)}
                 </span>
-                <span className="text-[13px] tabular-nums text-[#808080]">
+                <span className="text-[13px] tabular-nums text-fg-faint">
                   {formatTime(duration)}
                 </span>
               </div>
@@ -166,14 +166,14 @@ export function AudioTab({
               <div
                 ref={progressRef}
                 onClick={seek}
-                className="group relative h-[6px] w-full cursor-pointer rounded-full bg-[rgba(0,0,0,0.1)]"
+                className="group relative h-[6px] w-full cursor-pointer rounded-full bg-border"
               >
                 <div
-                  className="absolute inset-y-0 left-0 rounded-full bg-black transition-all"
+                  className="absolute inset-y-0 left-0 rounded-full bg-fg transition-all"
                   style={{ width: `${progress}%` }}
                 />
                 <div
-                  className="absolute top-1/2 -translate-y-1/2 size-[14px] rounded-full bg-black opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
+                  className="absolute top-1/2 -translate-y-1/2 size-[14px] rounded-full bg-fg opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
                   style={{ left: `calc(${progress}% - 7px)` }}
                 />
               </div>
@@ -184,8 +184,8 @@ export function AudioTab({
 
       {/* Speed control */}
       {audioUrl && (
-        <div className="rounded-[16px] border border-[rgba(0,0,0,0.1)] p-4">
-          <p className="mb-3 text-[13px] text-black">Playback speed</p>
+        <div className="rounded-[16px] border border-border p-4">
+          <p className="mb-3 text-[13px] text-fg">Playback speed</p>
           <div className="flex gap-2">
             {SPEED_OPTIONS.map((s) => (
               <button
@@ -197,8 +197,8 @@ export function AudioTab({
                 }}
                 className={`flex-1 rounded-[10px] py-2 text-[13px] font-medium transition-colors ${
                   speed === s
-                    ? "bg-black text-white"
-                    : "bg-[#f7f7f7] text-black hover:bg-[#eee]"
+                    ? "bg-fg text-surface"
+                    : "bg-surface-alt text-fg hover:bg-surface-hover"
                 }`}
               >
                 {s}x
@@ -215,7 +215,7 @@ export function AudioTab({
 
       {/* Download */}
       {audioUrl && (
-        <div className="flex gap-2.5 border-t border-[rgba(0,0,0,0.1)] pt-3.5">
+        <div className="flex gap-2.5 border-t border-border pt-3.5">
           <PillButton onClick={onDownload}>
             Download Audio
           </PillButton>

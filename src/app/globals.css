@@ -3,6 +3,20 @@
 @theme {
   --font-display: var(--font-display-face), "SF Pro Display", sans-serif;
   --font-body: var(--font-body-face), "SF Pro Display", sans-serif;
+
+  --color-surface: #ffffff;
+  --color-surface-alt: #f7f7f7;
+  --color-surface-hover: #efefef;
+  --color-fg: #000000;
+  --color-fg-muted: rgba(0, 0, 0, 0.6);
+  --color-fg-faint: #808080;
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-border-soft: rgba(0, 0, 0, 0.06);
+  --color-accent: #2f5cff;
+  --color-toggle-on: #000000;
+  --color-toggle-off: rgba(0, 0, 0, 0.2);
+  --color-toggle-knob: #ffffff;
+  --color-pill-shadow: rgba(0, 0, 0, 0.13);
 }
 
 html {
@@ -11,10 +25,28 @@ html {
   text-rendering: optimizeLegibility;
 }
 
+html.dark {
+  color-scheme: dark;
+
+  --color-surface: #141414;
+  --color-surface-alt: #1e1e1e;
+  --color-surface-hover: #2a2a2a;
+  --color-fg: #e8e8e8;
+  --color-fg-muted: rgba(255, 255, 255, 0.55);
+  --color-fg-faint: #808080;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-soft: rgba(255, 255, 255, 0.06);
+  --color-accent: #5b7fff;
+  --color-toggle-on: #ffffff;
+  --color-toggle-off: rgba(255, 255, 255, 0.2);
+  --color-toggle-knob: #141414;
+  --color-pill-shadow: rgba(0, 0, 0, 0.3);
+}
+
 body {
   min-height: 100dvh;
   font-family: var(--font-body);
   line-height: 1.6;
-  color: black;
-  background: white;
+  color: var(--color-fg);
+  background: var(--color-surface);
 }

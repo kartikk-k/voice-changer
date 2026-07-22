@@ -325,9 +325,9 @@ function VoiceSearchSelect({
           if (!open) setTimeout(() => inputRef.current?.focus(), 0);
           else stopPreview();
         }}
-        className="flex w-full items-center justify-between rounded-[10px] bg-[#f7f7f7] px-[12px] py-[6px] text-left text-[14px] outline-none"
+        className="flex w-full items-center justify-between rounded-[10px] bg-surface-alt px-[12px] py-[6px] text-left text-[14px] outline-none"
       >
-        <span className={selectedName ? "text-black" : "text-[rgba(0,0,0,0.6)]"}>
+        <span className={selectedName ? "text-fg" : "text-fg-muted"}>
           {selectedName || (loading ? "Loading..." : "Select a voice")}
         </span>
         <svg
@@ -349,16 +349,16 @@ function VoiceSearchSelect({
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute left-0 right-0 top-full z-10 mt-1 overflow-hidden rounded-[12px] border border-[rgba(0,0,0,0.1)] bg-white shadow-[0px_4px_12px_rgba(0,0,0,0.08)]">
+        <div className="absolute left-0 right-0 top-full z-10 mt-1 overflow-hidden rounded-[12px] border border-border bg-surface shadow-[0px_4px_12px_var(--color-pill-shadow)]">
           {/* Search input */}
-          <div className="border-b border-[rgba(0,0,0,0.06)] px-[10px] py-[8px]">
+          <div className="border-b border-border-soft px-[10px] py-[8px]">
             <input
               ref={inputRef}
               type="text"
               placeholder="Search voices..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-transparent text-[13px] text-black outline-none placeholder:text-[rgba(0,0,0,0.4)]"
+              className="w-full bg-transparent text-[13px] text-fg outline-none placeholder:text-fg-muted"
             />
           </div>
 
@@ -391,10 +391,10 @@ function VoiceSearchSelect({
                 }}
                 className={`flex w-full items-center justify-between px-[12px] py-[8px] text-left text-[13px] transition-colors ${
                   i === highlightIndex
-                    ? "bg-[#f0f0f0]"
+                    ? "bg-surface-hover"
                     : v.voice_id === value
-                      ? "bg-[#f7f7f7]"
-                      : "hover:bg-[#f7f7f7]"
+                      ? "bg-surface-alt"
+                      : "hover:bg-surface-alt"
                 } ${v.voice_id === value ? "font-medium" : ""}`}
               >
                 <span className="flex items-center gap-[6px]">

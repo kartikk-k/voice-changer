@@ -23,7 +23,7 @@ export function PillTabBar<T extends string>({
   const h = size === "sm" ? "h-[33px]" : "h-[40px]";
 
   return (
-    <div className="flex overflow-clip rounded-[99px] bg-[#f7f7f7] p-[2px]">
+    <div className="flex overflow-clip rounded-[99px] bg-surface-alt p-[2px]">
       {tabs.map((tab) => {
         const isActive = active === tab.key;
         return (
@@ -33,7 +33,7 @@ export function PillTabBar<T extends string>({
             onClick={() => onChange(tab.key)}
             className={`flex flex-1 cursor-pointer items-center justify-center ${h} text-xs ${
               isActive
-                ? "rounded-[99px] bg-white shadow-[0px_0px_4px_-1px_rgba(0,0,0,0.13)]"
+                ? "rounded-[99px] bg-surface shadow-[0px_0px_4px_-1px_var(--color-pill-shadow)]"
                 : "opacity-60"
             }`}
           >
@@ -50,7 +50,7 @@ export function PillTabBar<T extends string>({
 /** Rounded card container used to group related settings fields. */
 export function SettingsCard({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-[14px] rounded-[16px] border border-[rgba(0,0,0,0.1)] bg-white p-[12px]">
+    <div className="flex flex-col gap-[14px] rounded-[16px] border border-border bg-surface p-[12px]">
       {children}
     </div>
   );
@@ -80,7 +80,7 @@ export function SettingsField({
     <div className="flex flex-col gap-[4px]">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-[12px]">
-          <label htmlFor={htmlFor} className="text-[14px] text-black">
+          <label htmlFor={htmlFor} className="text-[14px] text-fg">
             {label}
           </label>
           {link && (
@@ -121,7 +121,7 @@ export function SettingsInput(
   return (
     <input
       {...props}
-      className="w-full rounded-[10px] bg-[#f7f7f7] px-[12px] py-[6px] text-[14px] text-[rgba(0,0,0,0.6)] outline-none"
+      className="w-full rounded-[10px] bg-surface-alt px-[12px] py-[6px] text-[14px] text-fg-muted outline-none"
     />
   );
 }
@@ -135,7 +135,7 @@ export function SettingsTextarea(
   return (
     <textarea
       {...props}
-      className="h-[100px] w-full resize-none rounded-[10px] bg-[#f7f7f7] px-[12px] py-[6px] text-[14px] text-[rgba(0,0,0,0.6)] outline-none"
+      className="h-[100px] w-full resize-none rounded-[10px] bg-surface-alt px-[12px] py-[6px] text-[14px] text-fg-muted outline-none"
     />
   );
 }
@@ -151,7 +151,7 @@ export function SettingsSelect(
     <div className="relative">
       <select
         {...rest}
-        className="w-full appearance-none rounded-[10px] bg-[#f7f7f7] px-[12px] py-[6px] pr-[28px] text-[14px] text-[rgba(0,0,0,0.6)] outline-none"
+        className="w-full appearance-none rounded-[10px] bg-surface-alt px-[12px] py-[6px] pr-[28px] text-[14px] text-fg-muted outline-none"
       >
         {children}
       </select>
@@ -191,11 +191,11 @@ export function Toggle({
       aria-checked={checked}
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-[17px] w-[40px] shrink-0 cursor-pointer items-center rounded-[99px] transition-colors duration-200 ${
-        checked ? "bg-black" : "bg-[rgba(0,0,0,0.2)]"
+        checked ? "bg-toggle-on" : "bg-toggle-off"
       }`}
     >
       <span
-        className={`pointer-events-none inline-block h-[15px] w-[23px] rounded-[99px] bg-white transition-transform duration-200 ${
+        className={`pointer-events-none inline-block h-[15px] w-[23px] rounded-[99px] bg-toggle-knob transition-transform duration-200 ${
           checked ? "translate-x-[16px]" : "translate-x-[1px]"
         }`}
       />
@@ -214,18 +214,18 @@ export function PillButton({
   variant?: "default" | "blue";
 }) {
   const textColor =
-    variant === "blue" ? "text-[#2f5cff]" : "text-black";
+    variant === "blue" ? "text-accent" : "text-fg";
   const shadow =
     variant === "blue"
-      ? "shadow-[0px_0px_4px_-1px_#2f5cff]"
-      : "shadow-[0px_0px_4px_-1px_rgba(0,0,0,0.13)]";
+      ? "shadow-[0px_0px_4px_-1px_var(--color-accent)]"
+      : "shadow-[0px_0px_4px_-1px_var(--color-pill-shadow)]";
 
   return (
-    <div className="flex-1 overflow-clip rounded-[99px] bg-[#f7f7f7] p-[2px]">
+    <div className="flex-1 overflow-clip rounded-[99px] bg-surface-alt p-[2px]">
       <button
         type="button"
         {...props}
-        className={`flex h-[40px] w-full cursor-pointer items-center justify-center rounded-[99px] bg-white px-[14px] text-[13px] ${textColor} ${shadow} disabled:cursor-not-allowed disabled:opacity-40`}
+        className={`flex h-[40px] w-full cursor-pointer items-center justify-center rounded-[99px] bg-surface px-[14px] text-[13px] ${textColor} ${shadow} disabled:cursor-not-allowed disabled:opacity-40`}
       >
         {children}
       </button>
@@ -245,8 +245,8 @@ export function MetricCell({
 }) {
   return (
     <div className="flex flex-1 flex-col items-start gap-[4px] py-[14px]">
-      <span className="text-[16px] text-black">{value}</span>
-      <span className="text-[14px] text-[#808080]">{label}</span>
+      <span className="text-[16px] text-fg">{value}</span>
+      <span className="text-[14px] text-fg-faint">{label}</span>
     </div>
   );
 }
