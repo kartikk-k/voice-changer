@@ -320,64 +320,98 @@ export function useStudio(
     setGeneratedSegments([]);
     setFinalDuration(null);
 
-    const stitchItems: StitchItem[] = [];
-    const results: GeneratedSegment[] = [];
-    let previousRequestIds: string[] = [];
+    const CONCURRENCY = 20;
 
     try {
-      for (let i = 0; i < segments.length; i++) {
-        const seg = segments[i];
+      // Prepare work items: figure out which segments need TTS vs silence
+      interface WorkItem {
+        segIndex: number;
+        seg: Segment;
+        text: string;
+      }
+      const workItems: (WorkItem | null)[] = segments.map((seg) => {
         const text = getSegmentText(seg);
+        if (!text.trim()) return null; // silence
+        return { segIndex: seg.index, seg, text };
+      });
 
-        // If text is blank (e.g. after cleanup removed all content),
-        // insert silence for this segment's full duration + gap
-        if (!text.trim()) {
-          const dur = seg.targetDuration + seg.gapAfter;
+      const speechSettings = {
+        apiKey: settings.elevenLabsApiKey,
+        voiceId: settings.voiceId,
+        modelId: "eleven_multilingual_v2",
+        outputFormat: settings.outputFormat,
+        stability: settings.stability,
+        similarityBoost: settings.similarityBoost,
+        speed: settings.speed,
+      };
+
+      // Results array indexed by segment position to preserve order
+      const resultsByIndex: (GeneratedSegment | null)[] = new Array(
+        segments.length,
+      ).fill(null);
+      const buffersByIndex: (AudioBuffer | null)[] = new Array(
+        segments.length,
+      ).fill(null);
+      let completed = 0;
+
+      // Generate TTS for non-empty segments in parallel batches of CONCURRENCY
+      const ttsItems = workItems
+        .map((item, i) => (item ? { ...item, position: i } : null))
+        .filter((x): x is WorkItem & { position: number } => x !== null);
+
+      for (let batch = 0; batch < ttsItems.length; batch += CONCURRENCY) {
+        const chunk = ttsItems.slice(batch, batch + CONCURRENCY);
+
+        setGenerateStatus(
+          `Generating segments ${batch + 1}–${Math.min(batch + CONCURRENCY, ttsItems.length)} of ${ttsItems.length}...`,
+        );
+
+        const promises = chunk.map(async (item) => {
+          const data = await generateSpeech(item.text, speechSettings);
+          const buffer = await decodeBase64Audio(data.audio_base64);
+          const requestId = data.request_id || data.history_item_id || null;
+
+          const row: GeneratedSegment = {
+            index: item.seg.index,
+            start: item.seg.start,
+            end: item.seg.end,
+            speaker: item.seg.speaker,
+            targetDuration: item.seg.targetDuration,
+            generatedDuration: buffer.duration,
+            gapAfter: item.seg.gapAfter,
+            text: item.text,
+            requestId,
+            alignment: data.alignment,
+          };
+
+          resultsByIndex[item.position] = row;
+          buffersByIndex[item.position] = buffer;
+          completed++;
+
+          // Update progress
+          setGeneratedSegments(
+            resultsByIndex.filter((r): r is GeneratedSegment => r !== null),
+          );
+        });
+
+        await Promise.all(promises);
+      }
+
+      // Stitch in original segment order
+      const stitchItems: StitchItem[] = [];
+      for (let i = 0; i < segments.length; i++) {
+        const buf = buffersByIndex[i];
+        if (buf) {
+          stitchItems.push({ type: "audio", buffer: buf });
+        } else {
+          // Blank/empty segment → silence for its full duration
+          const dur = segments[i].targetDuration + segments[i].gapAfter;
           if (dur > 0) stitchItems.push({ type: "silence", duration: dur });
           continue;
         }
-
-        setGenerateStatus(
-          `Generating segment ${i + 1} of ${segments.length}...`,
-        );
-
-        const data = await generateSpeech(
-          text,
-          {
-            apiKey: settings.elevenLabsApiKey,
-            voiceId: settings.voiceId,
-            modelId: "eleven_multilingual_v2",
-            outputFormat: settings.outputFormat,
-            stability: settings.stability,
-            similarityBoost: settings.similarityBoost,
-            speed: settings.speed,
-          },
-          previousRequestIds,
-        );
-
-        const buffer = await decodeBase64Audio(data.audio_base64);
-        stitchItems.push({ type: "audio", buffer });
-        if (seg.gapAfter > 0) {
-          stitchItems.push({ type: "silence", duration: seg.gapAfter });
+        if (segments[i].gapAfter > 0) {
+          stitchItems.push({ type: "silence", duration: segments[i].gapAfter });
         }
-
-        const requestId = data.request_id || data.history_item_id || null;
-        if (requestId) previousRequestIds = [requestId];
-
-        const row: GeneratedSegment = {
-          index: seg.index,
-          start: seg.start,
-          end: seg.end,
-          speaker: seg.speaker,
-          targetDuration: seg.targetDuration,
-          generatedDuration: buffer.duration,
-          gapAfter: seg.gapAfter,
-          text,
-          requestId,
-          alignment: data.alignment,
-        };
-        results.push(row);
-        setGeneratedSegments([...results]);
       }
 
       const finalBuffer = await stitchTimeline(stitchItems);
